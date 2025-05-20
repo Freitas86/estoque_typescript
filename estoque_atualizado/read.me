@@ -1,0 +1,36 @@
+Para rodar o projeto:
+
+Instalar o Node.js (via https://nodejs.org/)
+Depois instalar o TypeScript: npm install -g typescript
+Compile o projeto: tsc
+Rodar com o Node: node dist/index.js
+
+----------------------------------------------------------------------------------------------
+
+
+Padões utilizados e modificações feitas:
+
+1. Padrão Facade – Simplificação da interface do estoque
+
+Objetivo: Centralizar todas as operações de estoque em uma classe única, tornando o sistema mais
+organizado e fácil de usar.
+
+Modificações:
+- Criamos a classe EstoqueFacade em estoqueFacade.ts.
+  Essa classe encapsula chamadas como adicionarProduto, removerProduto, baixarProduto, etc.
+  A lógica de manipulação do array estoque foi movida para dentro da classe.
+
+--------------------------
+
+2. Padrão Observer – Notificação automática de mudanças
+
+Objetivo: Permitir que o sistema reaja automaticamente a mudanças importantes no estado do estoque.
+
+Modificações:
+- Criamos uma interface Observer em observer.ts.
+  Implementamos a classe AlertaEstoqueBaixo, que verifica se a quantidade de um produto caiu abaixo
+  de 5 e exibe um alerta.
+
+- A classe EstoqueFacade foi modificada para:
+  Manter uma lista de observers.
+  Notificar observers quando um produto for baixado.

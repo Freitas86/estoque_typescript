@@ -1,0 +1,65 @@
+Sequência de comandos para rodar o projeto no terminal:
+
+
+-------------------------------------------------------------------------
+
+COMANDO: tsc --init       
+
+Irá criar o tsconfig.json
+
+-------------------------------------------------------------------------
+
+Modificar o tsconfig.json para:
+
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "rootDir": "./",
+    "outDir": "./dist",
+    "strict": true
+  },
+  "include": [
+    "*.ts"
+  ]
+}
+
+-------------------------------------------------------------------------
+
+COMANDO: tsc
+
+Irá compila os arquivos .TS para .JS
+
+-------------------------------------------------------------------------
+
+COMANDO: node dist/index.js
+
+Irá rodar o projeto no terminal
+
+-------------------------------------------------------------------------
+
+Problemas identificados:
+
+1 - Padrão Estrutural: Facade
+
+Problema identificado:
+As operações de estoque (adicionar, remover, baixar, listar etc.) estão todas espalhadas em funções puras
+e são chamadas diretamente no index.js, tornando a lógica de negócio acoplada à camada de execução.
+Isso pode dificultar a manutenção e a expansão futura do sistema.
+
+Como o padrão Facade ajudaria:
+O padrão Facade pode ser usado para criar uma interface única que encapsula essas operações.
+Ele fornece um ponto de entrada mais simples para o módulo de estoque,
+ocultando a complexidade das múltiplas funções.
+
+2 - Padrão Comportamental: Observer
+
+Problema identificado:
+Não há nenhum mecanismo para reagir automaticamente a mudanças no estoque 
+(ex: envio de alerta quando a quantidade de um produto está baixa). 
+Isso pode ser crítico para sistemas maiores, que exigem notificações ou integrações com outros módulos.
+
+Como o padrão Observer ajudaria:
+Com o padrão Observer, seria possível notificar automaticamente diferentes parte
+do sistema sempre que um evento relevante ocorrer — como a baixa de estoque ou quando
+a quantidade de um item atingir um limite mínimo.
