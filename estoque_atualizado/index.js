@@ -1,58 +1,164 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var readline = require("readline");
 var estoqueFacade_1 = require("./estoqueFacade");
 var observer_1 = require("./observer");
-// --- Configuração Inicial ---
-// 1. Instancia a Facade que gerencia o estoque.
 var estoqueFacade = new estoqueFacade_1.EstoqueFacade();
-console.log("EstoqueFacade pronta.");
-// 2. Instancia o Observer para alertas de estoque baixo.
 var alertaDeEstoqueBaixo = new observer_1.AlertaEstoqueBaixo();
-console.log("AlertaEstoqueBaixo pronto.");
-// 3. Registra o Observer na Facade para receber notificações.
 estoqueFacade.adicionarObserver(alertaDeEstoqueBaixo);
-console.log("Observer de estoque baixo registrado na Facade.\n");
-// --- Demonstração das Operações de Estoque ---
-// 4. Adiciona produtos iniciais ao estoque através da Facade.
-console.log("--- Adicionando Produtos ---");
-var produto1 = { id: "P001", nome: "Notebook Gamer X", quantidade: 8, preco: 7500.00 };
-var produto2 = { id: "P002", nome: "Mouse Sem Fio Z", quantidade: 15, preco: 120.50 };
-var produto3 = { id: "P003", nome: "Teclado Mecânico Y", quantidade: 6, preco: 350.75 };
-estoqueFacade.adicionar(produto1);
-estoqueFacade.adicionar(produto2);
-estoqueFacade.adicionar(produto3);
-console.log("Produtos adicionados ao estoque.\n");
-// 5. Lista o conteúdo atual do estoque.
+console.log("Sistema de Gerenciamento de Estoque!");
+console.log("---------------------------------------------------------\n");
+// Estoque inicial 
+var produtoInicial1 = { id: "INIT001", nome: "Cadeira Ergonômica", quantidade: 10, preco: 799.90 };
+var produtoInicial2 = { id: "INIT002", nome: "Monitor LED 24\"", quantidade: 6, preco: 650.00 };
+estoqueFacade.adicionar(produtoInicial1);
+estoqueFacade.adicionar(produtoInicial2);
+// Interface readline
+var rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
+// Funções de Interação
+function exibirMenu() {
+    console.log("\n--- Menu Principal ---");
+    console.log("1. Adicionar novo produto");
+    console.log("2. Remover produto por ID");
+    console.log("3. Baixar estoque de produto por ID");
+    console.log("4. Listar todos os produtos");
+    console.log("5. Encontrar produto por ID");
+    console.log("6. Sair");
+    console.log("----------------------");
+    perguntarAcao();
+}
+function perguntarAcao() {
+    rl.question("Escolha uma opção: ", function (opcao) {
+        switch (opcao.trim()) {
+            case '1':
+                promptAdicionarProduto();
+                break;
+            case '2':
+                promptRemoverProduto();
+                break;
+            case '3':
+                promptBaixarEstoque();
+                break;
+            case '4':
+                console.log("\n--- Listagem Completa do Estoque ---");
+                estoqueFacade.listar();
+                console.log("------------------------------------");
+                exibirMenu();
+                break;
+            case '5':
+                promptEncontrarProduto();
+                break;
+            case '6':
+                console.log("\nFIM!");
+                rl.close();
+                break;
+            default:
+                console.log("Opção inválida. Por favor, escolha um número do menu.");
+                exibirMenu();
+                break;
+        }
+    });
+}
+function promptAdicionarProduto() {
+    rl.question("ID do novo produto: ", function (id) {
+        rl.question("Nome do produto: ", function (nome) {
+            rl.question("Quantidade inicial: ", function (quantidadeStr) {
+                rl.question("Preço (ex: 123.45): ", function (precoStr) {
+                    var quantidade = parseInt(quantidadeStr, 10);
+                    var preco = parseFloat(precoStr);
+                    if (!id || !nome) {
+                        console.log("ID e Nome são obrigatórios.");
+                        exibirMenu();
+                        return;
+                    }
+                    if (isNaN(quantidade) || quantidade < 0) {
+                        console.log("Quantidade inválida. Deve ser um número não negativo.");
+                        exibirMenu();
+                        return;
+                    }
+                    if (isNaN(preco) || preco < 0) {
+                        console.log("Preço inválido. Deve ser um número não negativo.");
+                        exibirMenu();
+                        return;
+                    }
+                    var novoProduto = { id: id, nome: nome, quantidade: quantidade, preco: preco };
+                    estoqueFacade.adicionar(novoProduto);
+                    console.log("Produto \"".concat(nome, "\" (ID: ").concat(id, ") adicionado com sucesso!"));
+                    exibirMenu();
+                });
+            });
+        });
+    });
+}
+function promptRemoverProduto() {
+    rl.question("ID do produto a ser removido: ", function (id) {
+        if (!id) {
+            console.log("ID é obrigatório para remover.");
+            exibirMenu();
+            return;
+        }
+        var produtoParaRemover = estoqueFacade.encontrar(id);
+        if (produtoParaRemover) {
+            estoqueFacade.remover(id);
+            console.log("Produto \"".concat(produtoParaRemover.nome, "\" (ID: ").concat(id, ") removido com sucesso."));
+        }
+        else {
+            console.log("Produto com ID \"".concat(id, "\" n\u00E3o encontrado."));
+        }
+        exibirMenu();
+    });
+}
+function promptBaixarEstoque() {
+    rl.question("ID do produto para dar baixa: ", function (id) {
+        rl.question("Quantidade a ser baixada: ", function (quantidadeStr) {
+            if (!id) {
+                console.log("ID é obrigatório para dar baixa.");
+                exibirMenu();
+                return;
+            }
+            var quantidade = parseInt(quantidadeStr, 10);
+            if (isNaN(quantidade) || quantidade <= 0) {
+                console.log("Quantidade inválida. Deve ser um número positivo maior que zero.");
+                exibirMenu();
+                return;
+            }
+            var produtoExistente = estoqueFacade.encontrar(id);
+            if (produtoExistente) {
+                estoqueFacade.baixar(id, quantidade); // observer é chamado por aqui pelo facade se necessário
+                console.log("Baixa de ".concat(quantidade, " unidade(s) para o produto \"").concat(produtoExistente.nome, "\" (ID: ").concat(id, ") processada."));
+            }
+            else {
+                console.log("Produto com ID \"".concat(id, "\" n\u00E3o encontrado para dar baixa."));
+            }
+            exibirMenu();
+        });
+    });
+}
+function promptEncontrarProduto() {
+    rl.question("ID do produto a ser encontrado: ", function (id) {
+        if (!id) {
+            console.log("ID é obrigatório para encontrar.");
+            exibirMenu();
+            return;
+        }
+        var produto = estoqueFacade.encontrar(id);
+        console.log("\n--- Resultado da Busca ---");
+        if (produto) {
+            console.log("ID: ".concat(produto.id, ", Nome: ").concat(produto.nome, ", Qtd: ").concat(produto.quantidade, ", Pre\u00E7o: R$ ").concat(produto.preco.toFixed(2)));
+            alertaDeEstoqueBaixo.atualizar(produto);
+        }
+        else {
+            console.log("Produto com ID \"".concat(id, "\" n\u00E3o encontrado."));
+        }
+        console.log("--------------------------");
+        exibirMenu();
+    });
+}
+// inicia interacao
 console.log("--- Estoque Inicial ---");
-estoqueFacade.listar();
-console.log("-----------------------\n");
-// 6. Realiza baixas no estoque, demonstrando o Observer em ação.
-console.log("--- Operações de Baixa ---");
-// Baixa P001: 8 -> 5. Não deve gerar alerta.
-estoqueFacade.baixar(produto1.id, 3);
-console.log("Baixa realizada em \"".concat(produto1.nome, "\"."));
-// Baixa P003: 6 -> 3. Deve gerar alerta (estoque < 5).
-estoqueFacade.baixar(produto3.id, 3);
-console.log("Baixa realizada em \"".concat(produto3.nome, "\"."));
-// Baixa P003: 3 -> 2. Deve gerar alerta novamente.
-estoqueFacade.baixar(produto3.id, 1);
-console.log("Nova baixa realizada em \"".concat(produto3.nome, "\"."));
-// Baixa P002: 15 -> 5. Não deve gerar alerta (estoque não é < 5).
-estoqueFacade.baixar(produto2.id, 10);
-console.log("Baixa realizada em \"".concat(produto2.nome, "\".\n"));
-// 7. Lista o estoque após todas as operações.
-console.log("--- Estoque Final ---");
-estoqueFacade.listar();
-console.log("---------------------\n");
-// 8. Demonstra a busca por um produto específico.
-console.log("--- Encontrando Produto ---");
-var idParaEncontrar = "P002";
-var produtoEncontrado = estoqueFacade.encontrar(idParaEncontrar);
-if (produtoEncontrado) {
-    console.log("Encontrado: ".concat(produtoEncontrado.nome, ", Qtd: ").concat(produtoEncontrado.quantidade));
-}
-else {
-    console.log("Produto ID ".concat(idParaEncontrar, " n\u00E3o localizado."));
-}
-console.log("-----------------------------\n");
-console.log("Fim da demonstração.");
+estoqueFacade.listar(); // estoque inicial
+console.log("---------------------------------------");
+exibirMenu(); // chama o menu
